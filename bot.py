@@ -45,18 +45,6 @@ def get_weather():
             break
 
     return temp, rain_expected
-def create_alert():
-    temp, rain_expected = get_weather()
-
-    if temp > 35:
-        return f"🔥 Heat Alert! Current temperature is {temp}°C"
-
-    if rain_expected:
-        return "🌧️ Rain Alert! Rain is forecast in the coming hours."
-    if temp is None:
-        return "⚠️ Weather data unavailable. Please check the API or your internet connection."
-
-    return None
 
 def create_summary():
     today = date.today()
@@ -73,6 +61,18 @@ Weather ({CITY}):
 Quote of the Day:
 {get_quote()}
 """
+def create_alert():
+    temp, rain_expected = get_weather()
+
+    if temp > 35:
+        return f"🔥 Heat Alert! Current temperature is {temp}°C"
+
+    if rain_expected:
+        return "🌧️ Rain Alert! Rain is forecast in the coming hours."
+    if temp is None:
+        return "⚠️ Weather data unavailable. Please check the API or your internet connection."
+
+    return None
 
 summary = create_summary()
 
@@ -103,4 +103,4 @@ if alert:
 else:
     print("No alert needed")
 with open(filename, "w") as file:
-    file.write(alert)
+    file.write(summary)
