@@ -103,4 +103,4 @@ if alert:
 else:
     print("No alert needed")
 with open(filename, "w") as file:
-    file.write(summary)
+    file.write(alert)
