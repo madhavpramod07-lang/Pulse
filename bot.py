@@ -1,3 +1,6 @@
+import os
+import smtplib
+from email.message import EmailMessage
 import requests
 from datetime import date
 
@@ -14,8 +17,9 @@ def get_quote():
 
     except Exception:
         return "Quote unavailable."
+CITY = "KOLLAM"
 def get_weather():
-    CITY = "Kollam"
+    
     response = requests.get(
     f"https://wttr.in/{CITY}?format=j1"
 )
@@ -47,7 +51,24 @@ summary = create_summary()
 
 filename = f"daily_summary_{date.today()}.txt"
 
-with open(filename, "w") as file:
-    file.write(summary)
+
 
 print(f"Summary saved to {filename}")
+def send_email(summary):
+    email_address = os.environ["EMAIL_ADDRESS"]
+    email_password = os.environ["EMAIL_APP_PASSWORD"]
+
+    msg = EmailMessage()
+    msg["Subject"] = "Pulse Daily Summary"
+    msg["From"] = email_address
+    msg["To"] = email_address
+
+    msg.set_content(summary)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(email_address, email_password)
+        smtp.send_message(msg)
+summary = create_summary()
+send_email(summary)
+with open(filename, "w") as file:
+    file.write(summary)
