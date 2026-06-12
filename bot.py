@@ -20,16 +20,43 @@ def get_quote():
 CITY = "KOLLAM"
 def get_weather():
     
-    response = requests.get(
-    f"https://wttr.in/{CITY}?format=j1"
-)
+    api_key = os.environ["OPENWEATHER_API_KEY"]
+    city = "Kollam"
 
+    url = (
+        f"https://api.openweathermap.org/data/2.5/forecast"
+        f"?q={city}&appid={api_key}&units=metric"
+    )
+
+    response = requests.get(url)
     data = response.json()
+    print(data)
+    print(url)
+    if "list" not in data:
+        print("Weather API error:", data)
+        return None, False
+    temp = data["list"][0]["main"]["temp"]
 
-    temp = data["current_condition"][0]["temp_C"]
-    condition = data["current_condition"][0]["weatherDesc"][0]["value"]
+    rain_expected = False
 
-    return f"{temp}°C, {condition}"
+    for forecast in data["list"][:8]:
+        if "rain" in forecast:
+            rain_expected = True
+            break
+
+    return temp, rain_expected
+def create_alert():
+    temp, rain_expected = get_weather()
+
+    if temp > 35:
+        return f"🔥 Heat Alert! Current temperature is {temp}°C"
+
+    if rain_expected:
+        return "🌧️ Rain Alert! Rain is forecast in the coming hours."
+    if temp is None:
+        return "⚠️ Weather data unavailable. Please check the API or your internet connection."
+
+    return None
 
 def create_summary():
     today = date.today()
@@ -68,7 +95,12 @@ def send_email(summary):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(email_address, email_password)
         smtp.send_message(msg)
-summary = create_summary()
-send_email(summary)
+alert = create_alert()
+
+if alert:
+    send_email(alert)
+    print("Alert sent")
+else:
+    print("No alert needed")
 with open(filename, "w") as file:
     file.write(summary)
